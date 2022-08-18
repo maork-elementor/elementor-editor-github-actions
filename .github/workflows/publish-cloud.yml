@@ -44,6 +44,10 @@ jobs:
             prefix: config
       - name: Test permissions
         uses: maork-elementor/elementor-editor-github-actions/permissions@master
+        with:
+          ENVIRONMENT: ${{ env.config_deployment_environment }}
+          DEPLOYMENT_PERMITTED: ${{ env.config_deployment_permitted }}
+          DEPLOYMENT_REPOSITORY: ${{ github.config_deployment_repository }}
       - name: Install Node.js 14.x
         uses: actions/setup-node@v2
         with:
