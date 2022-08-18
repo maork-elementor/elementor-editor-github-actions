@@ -1,7 +1,0 @@
-{
-  "deployment" : { 
-    "repository" : "elementor-pro",
-    "envirement" : "dev",
-    "permitted" : "KingYes,shilo-ey,matipojo,"
-  }
-}
