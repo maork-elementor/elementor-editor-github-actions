@@ -44,10 +44,14 @@ jobs:
             prefix: config
       - name: Test permissions
         uses: maork-elementor/elementor-editor-github-actions/permissions@master
-      - name: Install Node.js 14.x
+        with:
+          ENVIRONMENT: ${{ env.config_deployment_environment }}
+          DEPLOYMENT_PERMITTED: ${{ env.config_deployment_permitted }}
+          DEPLOYMENT_REPOSITORY: ${{ github.config_deployment_repository }}
+      - name: Install Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Get next release branch
         uses: maork-elementor/elementor-editor-github-actions/get-next-release-branch@master
         with:
@@ -84,10 +88,10 @@ jobs:
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
           repository: ${{ github.event.client_payload.repository}}
-      - name: Install Node.js 14.x
+      - name: Install Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: Get next release branch
         uses: maork-elementor/elementor-editor-github-actions/get-next-release-branch@master
         with:
