@@ -1,0 +1,63 @@
+name: Build Plugin
+description: Inject the given version into the plugin files and then build it and zip it.
+
+inputs:
+  PACKAGE_VERSION:
+    required: true
+    description: 'The version to inject into the plugin package.json file.'
+  REPO_NAME:
+    required: true
+    description: 'The name of the repository to build the plugin for.'
+
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+            if [ "${{ inputs.PACKAGE_VERSION }}" == "" ] || [ "${{ inputs.PACKAGE_VERSION }}" == "undefined" ];
+              then
+                echo "PACKAGE_VERSION is empty string or undefined"
+                exit 1
+            fi
+
+            #remove owner from repo name
+            REPO_NAME="${{ inputs.REPO_NAME }}"
+            REPO_NAME="${REPO_NAME#*/}"
+            REPO_NAME="${REPO_NAME%%/*}"
+            echo "REPO_NAME: ${REPO_NAME}"
+
+            # Support pro & core build
+            if [ "${REPO_NAME}" == "elementor" ]; then
+                sed -i -E "s/Stable tag: .*/Stable tag: ${{ inputs.PACKAGE_VERSION }}/g" ./readme.txt
+                sed -i -E "s/Version: .*/Version: ${{ inputs.PACKAGE_VERSION }}/g" ${REPO_NAME}.php
+                sed -i -E "s/ELEMENTOR_VERSION', '.*'/ELEMENTOR_VERSION', '${{ inputs.PACKAGE_VERSION }}'/g" ${REPO_NAME}.php
+                PLUGIN_ZIP_FILENAME="elementor-${{ inputs.PACKAGE_VERSION }}.zip"
+                npx grunt build
+                mv build elementor
+                zip -r $PLUGIN_ZIP_FILENAME elementor
+                echo "PLUGIN_ZIP_FILENAME=${PLUGIN_ZIP_FILENAME}" >> $GITHUB_ENV
+                echo "PLUGIN_ZIP_PATH=${{ github.workspace }}/elementor/**/*" >> $GITHUB_ENV
+                echo "PLUGIN_ZIP_FILENAME=${PLUGIN_ZIP_FILENAME}"
+            else
+                rm -rf ../elementor
+                git clone --single-branch --branch master https://github.com/elementor/elementor.git ../elementor
+                sed -i -E "s/Version: .*/Version: ${{ inputs.PACKAGE_VERSION }}/g" ./${REPO_NAME}.php
+                sed -i -E "s/ELEMENTOR_PRO_VERSION', '.*'/ELEMENTOR_PRO_VERSION', '${{ inputs.PACKAGE_VERSION }}'/g" ./${REPO_NAME}.php
+                sed -i -E "s/\$elementor_version_required = '.*?'/\$elementor_version_required = '${ELEMENTOR_VERSION_DEPENDENCY}'/g" ./${REPO_NAME}.php
+                sed -i -E "s/\$elementor_version_recommendation = '.*?'/\$elementor_version_recommendation = '${ELEMENTOR_VERSION_RECOMMENDATION}'/g" ./${REPO_NAME}.php
+                PLUGIN_ZIP_FILENAME="elementor-pro-${{ inputs.PACKAGE_VERSION }}.zip"
+                npx grunt build
+                PACKAGE_BASE_DIR="/tmp/elementor-pro-releases/"
+                PACKAGE_PATH=$(ls $PACKAGE_BASE_DIR)
+                echo "PACKAGE_PATH --> $PACKAGE_PATH"
+                mv "${PACKAGE_BASE_DIR}${PACKAGE_PATH}" ${PLUGIN_ZIP_FILENAME}
+                echo "${PACKAGE_BASE_DIR}${PACKAGE_PATH} ---> ${PLUGIN_ZIP_FILENAME}" 
+                echo ${PACKAGE_PATH}
+                echo "PLUGIN_ZIP_PATH=$(pwd)/${PLUGIN_ZIP_FILENAME}" >> $GITHUB_ENV
+                echo "PLUGIN_ZIP_FILENAME=${PLUGIN_ZIP_FILENAME}" >> $GITHUB_ENV
+            fi
+
+
+
+      
