@@ -8,6 +8,9 @@ inputs:
   SCRIPT_PATH:
     required: true
     description: 'The full path of the script to build the plugin.'
+  WORKSPACE:
+    required: true
+    description: 'The full path of the workspace to build the plugin.'
 
 
 runs:
@@ -24,4 +27,4 @@ runs:
       env:
         PACKAGE_VERSION: ${{ inputs.PACKAGE_VERSION }}
         SCRIPT_PATH: ${{ inputs.SCRIPT_PATH }}
-        WORKSPACE: ${{ github.workspace }}
+        WORKSPACE: ${{ inputs.WORKSPACE }}
