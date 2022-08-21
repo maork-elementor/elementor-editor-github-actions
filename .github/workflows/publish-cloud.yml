@@ -36,7 +36,7 @@ jobs:
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
           repository: ${{ github.event.client_payload.repository}}
-      - name: get configuration
+      - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
         with: 
