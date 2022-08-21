@@ -56,18 +56,18 @@ jobs:
         uses: maork-elementor/elementor-editor-github-actions/get-next-release-branch@master
         with:
           INPUT_VERSION: ${{ github.event.client_payload.version }}
-      - name: Get Current SHA
-        shell: bash
-        run: |
-          echo $(git rev-parse HEAD)
-          echo "CURRENT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
-      - name: Validate Run Checks
-        uses : maork-elementor/elementor-editor-github-actions/validate-run-checks@master
-        with:
-          TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
-          REPOSITORY: ${{ github.event.client_payload.repository}}
-          CURRENT_SHA: ${{ env.CURRENT_SHA }}
-          IGNORE_CHECKS_LIST: "publish-to-cloud" # Comma separated list of checks to ignore
+      # - name: Get Current SHA
+      #   shell: bash
+      #   run: |
+      #     echo $(git rev-parse HEAD)
+      #     echo "CURRENT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+      # - name: Validate Run Checks
+      #   uses : maork-elementor/elementor-editor-github-actions/validate-run-checks@master
+      #   with:
+      #     TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
+      #     REPOSITORY: ${{ github.event.client_payload.repository}}
+      #     CURRENT_SHA: ${{ env.CURRENT_SHA }}
+      #     IGNORE_CHECKS_LIST: "publish-to-cloud" # Comma separated list of checks to ignore
       - name: Bump version
         id: bump_version_step
         uses: maork-elementor/elementor-editor-github-actions/bump-version@master
