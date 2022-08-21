@@ -14,6 +14,11 @@ on:
         type: boolean
         description: 'Is this a pre-release?'
         required: false
+      repository_name:
+        type: string
+        description: 'Repository to publish to'
+        required: true
+
   workflow_call:
     inputs:
       version:
@@ -35,8 +40,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
-          repository: ${{ github.event.client_payload.repository}}
-      - name: get configuration
+          repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
+      - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
         with: 
@@ -47,7 +52,7 @@ jobs:
         with:
           ENVIRONMENT: ${{ env.config_deployment_environment }}
           DEPLOYMENT_PERMITTED: ${{ env.config_deployment_permitted }}
-          DEPLOYMENT_REPOSITORY: ${{ github.config_deployment_repository }}
+          DEPLOYMENT_REPOSITORY: ${{ github.config_deployment_repository || inputs.repository_name }}
       - name: Install Node.js 16.x
         uses: actions/setup-node@v2
         with:
@@ -55,7 +60,7 @@ jobs:
       - name: Get next release branch
         uses: maork-elementor/elementor-editor-github-actions/get-next-release-branch@master
         with:
-          INPUT_VERSION: ${{ github.event.client_payload.version }}
+          INPUT_VERSION: ${{ github.event.client_payload.version || inputs.version }}
       - name: Get Current SHA
         shell: bash
         run: |
@@ -65,7 +70,7 @@ jobs:
         uses : maork-elementor/elementor-editor-github-actions/validate-run-checks@master
         with:
           TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
-          REPOSITORY: ${{ github.event.client_payload.repository}}
+          REPOSITORY: ${{ github.event.client_payload.repository  || inputs.repository_name }}
           CURRENT_SHA: ${{ env.CURRENT_SHA }}
           IGNORE_CHECKS_LIST: "publish-to-cloud" # Comma separated list of checks to ignore
       - name: Bump version
@@ -78,7 +83,7 @@ jobs:
         with:
           MAINTAIN_USERNAME: ${{ secrets.MAINTAIN_USERNAME }}
           MAINTAIN_EMAIL: ${{ secrets.MAINTAIN_EMAIL }}
-          COMMIT_MESSAGE: "Bump ${{ inputs.PACKAGE_VERSION || env.PACKAGE_VERSION }}"
+          COMMIT_MESSAGE: "Bump ${{ env.PACKAGE_VERSION || github.event.client_payload.version || inputs.version }}"
   publish-to-cloud:
     needs: bump-version
     runs-on: ubuntu-20.04
@@ -87,7 +92,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
-          repository: ${{ github.event.client_payload.repository}}
+          repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
       - name: Install Node.js 16.x
         uses: actions/setup-node@v2
         with:
@@ -101,7 +106,7 @@ jobs:
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
           ref: ${{ env.RELEASE_BRANCH }}
-          repository: ${{ github.event.client_payload.repository}}
+          repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
       - name: Install Dependencies
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').last_cloud_version")
@@ -111,7 +116,8 @@ jobs:
         uses: maork-elementor/elementor-editor-github-actions/build-plugin@master
         with:
           PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
-          REPO_NAME: ${{ github.event.client_payload.repository }}
+          SCRIPT_PATH: "./.github/scripts/build-zip.sh"
+          WORKSPACE: "./"
       - name: Upload zip file to GitHub actions artifact
         uses: actions/upload-artifact@v2
         with:
@@ -128,7 +134,7 @@ jobs:
         uses : maork-elementor/elementor-editor-github-actions/generate-changelog@master
         with:
           TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
-          REPOSITORY: ${{ github.event.client_payload.repository}}
+          REPOSITORY: ${{ github.event.client_payload.repository || inputs.repository_name }}
           HEAD_BRANCH_NAME: v${{ env.PACKAGE_VERSION }}
           BASE_TAG_NAME: v${{ needs.bump-version.outputs.prev_version }}
       - name: Create GitHub release
@@ -136,9 +142,9 @@ jobs:
         with:
           tag_name: v${{ env.PACKAGE_VERSION }}
           files: elementor-*.zip
-          prerelease: ${{ github.event.client_payload.pre_release }}
+          prerelease: ${{ github.event.client_payload.pre_release  || inputs.pre_release }}
           body_path: temp-changelog.txt
-          repository: ${{ github.event.client_payload.repository}}
+          repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
           token: ${{ secrets.MAINTAIN_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
