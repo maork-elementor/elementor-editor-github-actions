@@ -41,6 +41,12 @@ jobs:
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
           repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
+          path: /tmp/checkout
+      - name: Set symbolic Link To 
+        shell: bash
+        run: |
+          cd /tmp/checkout
+          echo $(ls -la)
       - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
@@ -48,7 +54,7 @@ jobs:
             filename: './.github/workflows/config.json'
             prefix: config
       - name: Test permissions
-        uses: maork-elementor/elementor-editor-github-actions/permissions@master
+        uses: ./permissions
         with:
           ENVIRONMENT: ${{ env.config_deployment_environment }}
           DEPLOYMENT_PERMITTED: ${{ env.config_deployment_permitted }}
@@ -58,7 +64,7 @@ jobs:
         with:
           node-version: 16.x
       - name: Get next release branch
-        uses: maork-elementor/elementor-editor-github-actions/get-next-release-branch@master
+        uses: ./get-next-release-branch
         with:
           INPUT_VERSION: ${{ github.event.client_payload.version || inputs.version }}
       - name: Get Current SHA
@@ -67,7 +73,7 @@ jobs:
           echo $(git rev-parse HEAD)
           echo "CURRENT_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
       - name: Validate Run Checks
-        uses : maork-elementor/elementor-editor-github-actions/validate-run-checks@master
+        uses : ./validate-run-checks
         with:
           TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
           REPOSITORY: ${{ github.event.client_payload.repository  || inputs.repository_name }}
@@ -75,11 +81,11 @@ jobs:
           IGNORE_CHECKS_LIST: "publish-to-cloud" # Comma separated list of checks to ignore
       - name: Bump version
         id: bump_version_step
-        uses: maork-elementor/elementor-editor-github-actions/bump-version@master
+        uses: ./bump-version
         with:
           CHANNEL: "cloud"
       - name: Push version
-        uses : maork-elementor/elementor-editor-github-actions/push-new-version@master
+        uses : ./push-new-version
         with:
           MAINTAIN_USERNAME: ${{ secrets.MAINTAIN_USERNAME }}
           MAINTAIN_EMAIL: ${{ secrets.MAINTAIN_EMAIL }}
@@ -98,7 +104,7 @@ jobs:
         with:
           node-version: 16.x
       - name: Get next release branch
-        uses: maork-elementor/elementor-editor-github-actions/get-next-release-branch@master
+        uses: ./get-next-release-branch
         with:
           INPUT_VERSION: ${{ github.event.inputs.version }}
       - name: Checkout next release branch
@@ -113,7 +119,7 @@ jobs:
           echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
           npm ci
       - name: Build plugin
-        uses: maork-elementor/elementor-editor-github-actions/build-plugin@master
+        uses: ./build-plugin
         with:
           PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
           SCRIPT_PATH: "./.github/scripts/build-zip.sh"
@@ -124,13 +130,13 @@ jobs:
           path: ${{ env.PLUGIN_ZIP_PATH }}
           if-no-files-found: error
       - name: Create Git tag
-        uses : maork-elementor/elementor-editor-github-actions/create-git-tag@master
+        uses : ./create-git-tag
         with:
           MAINTAIN_USERNAME: ${{ secrets.MAINTAIN_USERNAME }}
           MAINTAIN_EMAIL: ${{ secrets.MAINTAIN_EMAIL }}
           PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
       - name: Generate changelog
-        uses : maork-elementor/elementor-editor-github-actions/generate-changelog@master
+        uses : ./generate-changelog
         with:
           TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
           REPOSITORY: ${{ github.event.client_payload.repository || inputs.repository_name }}
@@ -148,7 +154,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MAINTAIN_TOKEN }}
       - name: Send slack message
-        uses: maork-elementor/elementor-editor-github-actions/slack-notify@master
+        uses: ./slack-notify
         with:
           MESSAGE: "@here Elementor ${{ env.PACKAGE_VERSION }} has been released! Saddle up partners! :tada:"
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
