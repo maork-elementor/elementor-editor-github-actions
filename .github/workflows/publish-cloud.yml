@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           rm ./tmp/checkout/.github/workflows/publish-cloud.yml
-          cp -r ./tmp/checkout/* ./
+          cp -r ./tmp/checkout/* .
       - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
