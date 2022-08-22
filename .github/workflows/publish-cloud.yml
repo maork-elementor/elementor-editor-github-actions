@@ -44,17 +44,19 @@ jobs:
           path: ./tmp/checkout
       - name: Copy Files To Workspace
         shell: bash
-        env:
-          WORKSPACE: $GITHUB_WORKSPACE
         run: |
-          echo $(pwd)
-          echo $(ls -la $WORKSPACE)
           sudo apt-get install rsync -y
+
+          echo $(pwd)
+          echo $(ls -la ./.github/workflows/)
+          
           rm ./tmp/checkout/.github/workflows/publish-cloud.yml
           rm -rf ./tmp/checkout/.git
-          rsync -avu ./tmp/checkout/ $WORKSPACE
+
+          rsync -avu ./tmp/checkout/ .
           echo '--------------ls -la ./.github/workflows/-----------------'
           echo $(ls -la ./.github/workflows/)
+          
       - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
