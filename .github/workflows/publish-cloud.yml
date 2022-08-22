@@ -41,11 +41,11 @@ jobs:
         with:
           token: ${{ secrets.MAINTAIN_TOKEN }}
           repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
-          path: /tmp/checkout
+          path: ./tmp/checkout
       - name: Set symbolic Link To 
         shell: bash
         run: |
-          cd /tmp/checkout
+          cd ./tmp/checkout
           echo $(ls -la)
       - name: Get Configuration
         id: configuration
