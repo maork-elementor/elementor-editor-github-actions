@@ -45,10 +45,10 @@ jobs:
       - name: Copy Files To Workspace
         shell: bash
         run: |
+          apt-get install rsync -y
           rm ./tmp/checkout/.github/workflows/publish-cloud.yml
           rm -rf ./tmp/checkout/.git
-          cp -RTp ./tmp/checkout .
-          echo $(ls -la .github/workflows/)
+          rsync -avu ./tmp/checkout/ .
       - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
