@@ -52,7 +52,7 @@ jobs:
           sudo apt-get install rsync -y
           rm ./tmp/checkout/.github/workflows/publish-cloud.yml
           rm -rf ./tmp/checkout/.git
-          rsync -avu ./tmp/checkout/ ${{ WORKSPACE }}
+          rsync -avu ./tmp/checkout/ $WORKSPACE
           echo '--------------ls -la ./.github/workflows/-----------------'
           echo $(ls -la ./.github/workflows/)
       - name: Get Configuration
