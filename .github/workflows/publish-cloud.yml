@@ -48,6 +48,7 @@ jobs:
           rm ./tmp/checkout/.github/workflows/publish-cloud.yml
           rm -rf ./tmp/checkout/.git
           cp -RTp ./tmp/checkout .
+          echo $(ls -la .github/workflows/)
       - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
