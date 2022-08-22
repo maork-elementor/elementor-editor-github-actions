@@ -42,11 +42,11 @@ jobs:
           token: ${{ secrets.MAINTAIN_TOKEN }}
           repository: ${{ github.event.client_payload.repository || inputs.repository_name }}
           path: ./tmp/checkout
-      - name: Set symbolic Link To 
+      - name: Copy Files To Workspace
         shell: bash
         run: |
-          cd ./tmp/checkout
-          echo $(ls -la)
+          rm ./tmp/checkout/.github/workflows/publish-cloud.yml
+          cp -r ./tmp/checkout/* ./
       - name: Get Configuration
         id: configuration
         uses: antifree/json-to-variables@v1.0.1
